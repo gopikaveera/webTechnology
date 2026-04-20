@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile containing identity and blood donation details.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "bloodGroup": { "type": "string", "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] },
+        "location": { "type": "string" },
+        "lastDonatedAt": { "type": "string", "format": "date-time" },
+        "isAvailable": { "type": "boolean" },
+        "points": { "type": "integer" }
+      },
+      "required": ["userId", "fullName", "email", "bloodGroup"]
+    },
+    "BloodRequest": {
+      "title": "Blood Request",
+      "description": "A request for urgent blood donation.",
+      "type": "object",
+      "properties": {
+        "requestId": { "type": "string" },
+        "requesterId": { "type": "string" },
+        "bloodGroup": { "type": "string", "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] },
+        "hospitalName": { "type": "string" },
+        "location": { "type": "string" },
+        "reason": { "type": "string" },
+        "urgency": { "type": "string", "enum": ["Critical", "Urgent", "Normal"] },
+        "status": { "type": "string", "enum": ["Open", "Fulfilled", "Cancelled"] },
+        "unitsNeeded": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["requesterId", "bloodGroup", "hospitalName", "urgency", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profile information."
+    },
+    "/requests/{requestId}": {
+      "schema": "BloodRequest",
+      "description": "Stores blood donation requests."
+    }
+  }
+}

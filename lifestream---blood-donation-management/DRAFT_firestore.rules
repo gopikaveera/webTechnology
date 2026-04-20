@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitives
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function emailVerified() { return request.auth.token.email_verified == true; }
+    
+    // Entity Validators
+    function isValidUser(data) {
+      return data.keys().hasAll(['userId', 'fullName', 'email', 'bloodGroup']) &&
+             data.userId == request.auth.uid &&
+             data.fullName is string && data.fullName.size() <= 100 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.bloodGroup in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] &&
+             (!('location' in data) || (data.location is string && data.location.size() <= 200)) &&
+             (!('points' in data) || data.points is int);
+    }
+
+    function isValidRequest(data) {
+      return data.keys().hasAll(['requesterId', 'bloodGroup', 'hospitalName', 'urgency', 'status']) &&
+             data.requesterId == request.auth.uid &&
+             data.bloodGroup in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] &&
+             data.hospitalName is string && data.hospitalName.size() <= 150 &&
+             data.urgency in ['Critical', 'Urgent', 'Normal'] &&
+             data.status in ['Open', 'Fulfilled', 'Cancelled'] &&
+             (!('reason' in data) || (data.reason is string && data.reason.size() <= 500)) &&
+             (!('unitsNeeded' in data) || (data.unitsNeeded is int && data.unitsNeeded > 0));
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && resource.data.bloodGroup == request.query.where.bloodGroup; // Enforces secure list queries
+      
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && 
+                      isValidUser(request.resource.data) &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fullName', 'location', 'lastDonatedAt', 'isAvailable', 'points']);
+    }
+
+    // 2. Requests Collection
+    match /requests/{requestId} {
+      allow read: if isSignedIn();
+      
+      allow create: if isSignedIn() && 
+                    isValidId(requestId) && 
+                    isValidRequest(request.resource.data) &&
+                    request.resource.data.createdAt == request.time;
+                    
+      allow update: if isSignedIn() && 
+                    resource.data.requesterId == request.auth.uid &&
+                    isValidRequest(request.resource.data) &&
+                    // Terminal State Locking: Cannot modify if already fulfilled or cancelled
+                    resource.data.status == 'Open' &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'unitsNeeded', 'reason']);
+                    
+      allow delete: if isSignedIn() && resource.data.requesterId == request.auth.uid;
+    }
+  }
+}
