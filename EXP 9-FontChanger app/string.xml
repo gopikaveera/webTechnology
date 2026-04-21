@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">Font_Change</string>
+    <string name="hello_text">Hello Sivasankari</string>
+    <string name="change_style">Change Style</string>
+
+    <string name="font_roboto">Roboto</string>
+    <string name="font_lato">Lato</string>
+    <string name="font_opensans">Open Sans</string>
+
+    <string name="style_normal">Normal</string>
+    <string name="style_bold">Bold</string>
+    <string name="style_italic">Italic</string>
+
+    <!-- FONT -->
+    <string-array name="font_list">
+        <item>Roboto</item>
+        <item>Lato</item>
+        <item>Open Sans</item>
+    </string-array>
+
+    <!-- STYLE (ADD THIS) -->
+    <string-array name="style_list">
+        <item>Normal</item>
+        <item>Bold</item>
+        <item>Italic</item>
+    </string-array>
+
+    <!-- COLOR -->
+    <string-array name="color_list">
+        <item>Black</item>
+        <item>Red</item>
+        <item>Blue</item>
+        <item>Green</item>
+        <item>Orange</item>
+    </string-array>
+
+</resources>
