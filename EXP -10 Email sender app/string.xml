@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">EmailSenderApp</string>
+    <string name="recipient_email">Recipient Email</string>
+    <string name="subject">Subject</string>
+    <string name="message">Message</string>
+    <string name="send_email">Send Email</string>
+</resources>
